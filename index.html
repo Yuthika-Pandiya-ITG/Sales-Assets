@@ -3,204 +3,170 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITGeeks Resource Hub</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23e8553a'/><text x='50' y='68' text-anchor='middle' fill='white' font-size='48' font-weight='bold' font-family='sans-serif'>iG</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>ITGeeks — Confidential Resource Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23a0856b'/><text x='50' y='68' text-anchor='middle' fill='white' font-size='44' font-weight='bold' font-family='serif'>iG</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans','Segoe UI',system-ui,sans-serif;background:#f5f0e8}
-@keyframes toastIn{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes fadeUp{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
-input::placeholder,textarea::placeholder,select{color:#a09585}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-thumb{background:#e8e2d6;border-radius:3px}
-.nv:hover{background:#f5f0e8!important}
-.rh:hover{background:#faf7f2!important}
+body{font-family:'Space Grotesk','Segoe UI',system-ui,sans-serif;background:#e8e0d0}
+@keyframes toastIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes stampIn{from{transform:scale(1.5) rotate(-8deg);opacity:0}to{transform:scale(1) rotate(-3deg);opacity:1}}
+input::placeholder,textarea::placeholder{color:#b5a898}
+select{color:#4a3f33}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c4b8a8;border-radius:3px}
+.nv:hover{background:rgba(160,133,107,0.12)!important}
+.rh:hover{background:#f7f2eb!important}
+.folder-tab{position:relative;padding:8px 20px 6px;border-radius:8px 8px 0 0;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none;font-family:inherit;background:transparent;color:#8a7d6d}
+.folder-tab.active{background:#f5f0e6;color:#4a3f33;box-shadow:0 -2px 8px rgba(0,0,0,0.04);z-index:2;font-weight:600}
+.folder-tab:not(.active):hover{background:rgba(245,240,230,0.5)}
+.card{background:#f5f0e6;border:1px solid #ddd5c6;border-radius:4px;box-shadow:0 1px 4px rgba(74,63,51,0.06);position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");border-radius:4px;pointer-events:none}
+.stamp{display:inline-block;border:2px solid #c43a2f;color:#c43a2f;padding:3px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;transform:rotate(-3deg);font-family:'DM Mono',monospace;animation:stampIn .4s ease}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useCallback,useRef} = React;
+const {useState,useEffect,useCallback,useRef}=React;
 
-/* ═══════════════════════════════════════════════════
-   ITGeeks Resource Hub — Standalone HTML for Vercel
-   SSO-Only · localStorage · All features intact
-   ═══════════════════════════════════════════════════ */
+// ══════ CONFIG ══════
+const GOOGLE_CLIENT_ID="YOUR_CLIENT_ID.apps.googleusercontent.com";
+const IS_DEMO=GOOGLE_CLIENT_ID==="YOUR_CLIENT_ID.apps.googleusercontent.com";
 
-// ─── CONFIG: Replace with your Google OAuth Client ID ───
-const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
-
-// ─── Storage (localStorage for real hosting) ───
-const SK = {users:"ig-u",resources:"ig-r",logs:"ig-l",categories:"ig-c"};
+// ══════ STORAGE ══════
+const SK={users:"ig-u7",resources:"ig-r7",logs:"ig-l7",categories:"ig-c7"};
 function ld(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch{return fb}}
 function sv(k,d){try{localStorage.setItem(k,JSON.stringify(d))}catch(e){console.error(e)}}
-
-const DEF_USERS=[
-  {id:"u1",email:"admin@itgeeks.com",name:"Admin",role:"Admin",sso:true},
-  {id:"u2",email:"sales@itgeeks.com",name:"Sales User",role:"Sales Rep",sso:true},
-  {id:"u3",email:"viewer@itgeeks.com",name:"Viewer User",role:"Viewer",sso:true},
-];
+const DEF_USERS=[{id:"u1",email:"admin@itgeeks.com",name:"Admin",role:"Admin",sso:true},{id:"u2",email:"sales@itgeeks.com",name:"Sales User",role:"Sales Rep",sso:true},{id:"u3",email:"viewer@itgeeks.com",name:"Viewer User",role:"Viewer",sso:true}];
 const DEF_CATS=["Bank Details","Call Sheets","Case Studies","IT-Geeks Policies","Manager Profiles","Passwords","Proposals","Quick Links","Service Deck","W9 Forms"];
 
-// ─── Theme ───
-const C={bg:"#f5f0e8",surface:"#ffffff",surfaceWarm:"#faf7f2",sidebar:"#faf7f2",border:"#e8e2d6",borderLight:"#f0ebe2",accent:"#e8553a",accentLight:"#fdf0ed",accentHover:"#d44a32",blue:"#3b6de0",blueLight:"#eef3fd",text:"#2c2418",textSec:"#6b5e4f",textMuted:"#a09585",success:"#2d8a5e",successBg:"#edf7f1",warning:"#c47a1a",warningBg:"#fef8ec",danger:"#c43a2f",dangerBg:"#fdf0ef",purple:"#7554b8",purpleBg:"#f5f2fa",shadow:"0 1px 3px rgba(44,36,24,0.06)",shadowMd:"0 4px 16px rgba(44,36,24,0.08)"};
+// ══════ THEME ══════
+const C={bg:"#e8e0d0",surface:"#f5f0e6",surfaceWarm:"#ede7da",sidebar:"#ddd5c5",border:"#cec4b2",borderLight:"#ddd5c6",accent:"#a0856b",accentDark:"#7a6650",accentLight:"#f0e8db",red:"#c43a2f",redBg:"#f8e8e6",blue:"#4a6fa5",blueBg:"#e8eef5",green:"#5a8a5e",greenBg:"#e8f0e8",amber:"#b8860b",amberBg:"#f5eedd",text:"#3a3226",textSec:"#6b5e4f",textMuted:"#9e8e7d",shadow:"0 1px 4px rgba(74,63,51,0.06)",shadowMd:"0 4px 16px rgba(74,63,51,0.08)"};
 
-function gid(){return "i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-function fdt(iso){if(!iso)return "—";const d=new Date(iso);return d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+", "+d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
+function gid(){return"i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fdt(iso){if(!iso)return"—";const d=new Date(iso);return d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})+", "+d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"})}
 
-// ─── Icon helper (returns React element from SVG string) ───
-function Ic({d,size=20,sw=1.7}){return React.createElement("svg",{width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:sw,strokeLinecap:"round",strokeLinejoin:"round",dangerouslySetInnerHTML:{__html:d}})}
-const icons={
+// ══════ SVG ICONS ══════
+function Ic({d,size=18,sw=1.7}){return React.createElement("svg",{width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:sw,strokeLinecap:"round",strokeLinejoin:"round",dangerouslySetInnerHTML:{__html:d}})}
+const ic={
   home:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-  category:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  cat:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
   users:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>',
-  activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
-  download:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-  logout:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  log:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+  dl:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  ul:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  out:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
   search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
   plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
-  extLink:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+  ext:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
   file:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
   lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>',
   edit:'<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>',
   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>',
   x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-  dl:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
-  ul:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
   tag:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+  clip:'<path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>',
 };
 
-// ─── Shared Components ───
+// ══════ COMPONENTS ══════
 function Toast({message,type,onClose}){
   useEffect(()=>{const t=setTimeout(onClose,3000);return()=>clearTimeout(t)},[onClose]);
-  const bg=type==="success"?C.success:type==="error"?C.danger:C.blue;
-  return <div style={{position:"fixed",top:20,right:20,zIndex:9999,padding:"11px 20px",background:bg,color:"#fff",borderRadius:10,fontSize:13,fontWeight:500,boxShadow:C.shadowMd,animation:"toastIn .3s ease"}}>{message}</div>;
+  const bg=type==="success"?C.green:type==="error"?C.red:C.blue;
+  return <div style={{position:"fixed",top:20,right:20,zIndex:9999,padding:"11px 20px",background:bg,color:"#fff",borderRadius:4,fontSize:13,fontWeight:500,fontFamily:"'DM Mono',monospace",boxShadow:C.shadowMd,animation:"toastIn .3s ease",letterSpacing:".02em"}}>{message}</div>;
 }
-
 function Modal({title,onClose,children,width=520}){
-  return <div style={{position:"fixed",inset:0,zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(44,36,24,0.18)",backdropFilter:"blur(2px)"}} onClick={onClose}>
-    <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,width:"92%",maxWidth:width,maxHeight:"85vh",overflow:"auto",padding:"24px 28px",boxShadow:"0 20px 50px rgba(44,36,24,0.12)"}} onClick={e=>e.stopPropagation()}>
+  return <div style={{position:"fixed",inset:0,zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(58,50,38,0.25)",backdropFilter:"blur(2px)"}} onClick={onClose}>
+    <div className="card" style={{width:"92%",maxWidth:width,maxHeight:"85vh",overflow:"auto",padding:"24px 28px"}} onClick={e=>e.stopPropagation()}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <h3 style={{margin:0,fontSize:16,fontWeight:600,color:C.text}}>{title}</h3>
-        <button onClick={onClose} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",padding:2,display:"flex"}}><Ic d={icons.x} size={18} sw={2}/></button>
-      </div>
-      {children}
+        <h3 style={{margin:0,fontSize:16,fontWeight:600,color:C.text,fontFamily:"'Libre Baskerville',serif"}}>{title}</h3>
+        <button onClick={onClose} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",padding:2,display:"flex"}}><Ic d={ic.x} size={18} sw={2}/></button>
+      </div>{children}
     </div>
   </div>;
 }
-
-function FF({label,children}){return <div style={{marginBottom:16}}><label style={{display:"block",fontSize:12,fontWeight:600,color:C.textSec,marginBottom:6}}>{label}</label>{children}</div>}
-const iS={width:"100%",padding:"10px 14px",background:C.surfaceWarm,border:`1px solid ${C.border}`,borderRadius:8,color:C.text,fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"};
-
-function Btn({children,variant="primary",size="md",icon,disabled,style:customStyle,...p}){
-  const sz={sm:{padding:"5px 10px",fontSize:12},md:{padding:"9px 16px",fontSize:13},lg:{padding:"11px 22px",fontSize:14}}[size];
-  const vr={primary:{background:C.accent,color:"#fff",border:"none"},blue:{background:C.blue,color:"#fff",border:"none"},secondary:{background:C.surfaceWarm,color:C.text,border:`1px solid ${C.border}`},danger:{background:C.danger,color:"#fff",border:"none"},ghost:{background:"transparent",color:C.textSec,border:`1px solid ${C.border}`},success:{background:C.success,color:"#fff",border:"none"}}[variant];
-  return <button disabled={disabled} {...p} style={{...sz,...vr,borderRadius:8,cursor:disabled?"not-allowed":"pointer",fontWeight:500,display:"inline-flex",alignItems:"center",gap:5,fontFamily:"inherit",transition:"all .15s",opacity:disabled?.4:1,...(customStyle||{})}}>{icon&&<span style={{display:"flex"}}>{icon}</span>}{children}</button>;
+function FF({label,ch}){return <div style={{marginBottom:16}}><label style={{display:"block",fontSize:11,fontWeight:500,color:C.textSec,marginBottom:6,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".08em"}}>{label}</label>{ch}</div>}
+const iS={width:"100%",padding:"10px 14px",background:"#faf6ef",border:`1px solid ${C.border}`,borderRadius:4,color:C.text,fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"};
+function Btn({children,variant="primary",size="md",icon,disabled,style:cs,...p}){
+  const sz={sm:{padding:"4px 10px",fontSize:12},md:{padding:"8px 16px",fontSize:13},lg:{padding:"10px 22px",fontSize:14}}[size];
+  const vr={primary:{background:C.accent,color:"#fff",border:"none"},blue:{background:C.blue,color:"#fff",border:"none"},secondary:{background:C.surfaceWarm,color:C.text,border:`1px solid ${C.border}`},danger:{background:C.red,color:"#fff",border:"none"},ghost:{background:"transparent",color:C.textSec,border:`1px solid ${C.border}`},success:{background:C.green,color:"#fff",border:"none"}}[variant];
+  return <button disabled={disabled} {...p} style={{...sz,...vr,borderRadius:4,cursor:disabled?"not-allowed":"pointer",fontWeight:500,display:"inline-flex",alignItems:"center",gap:5,fontFamily:"'DM Mono',monospace",fontSize:sz.fontSize,transition:"all .15s",opacity:disabled?.4:1,...(cs||{})}}>{icon&&<span style={{display:"flex"}}>{icon}</span>}{children}</button>;
 }
-
 function RoleBadge({role}){
-  const m={Admin:{bg:C.accentLight,c:C.accent},"Sales Rep":{bg:C.successBg,c:C.success},Viewer:{bg:C.warningBg,c:C.warning}};
-  const c=m[role]||m.Viewer;
-  return <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:c.bg,color:c.c}}>{role}</span>;
+  const m={Admin:{bg:C.accentLight,c:C.accentDark},"Sales Rep":{bg:C.greenBg,c:C.green},Viewer:{bg:C.amberBg,c:C.amber}};const c=m[role]||m.Viewer;
+  return <span style={{padding:"2px 10px",borderRadius:2,fontSize:11,fontWeight:500,background:c.bg,color:c.c,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".05em"}}>{role}</span>;
 }
-
 function TypeIcon({type}){
-  const m={password:{ic:icons.lock,bg:C.dangerBg,c:C.danger},link:{ic:icons.extLink,bg:C.blueLight,c:C.blue},file:{ic:icons.file,bg:C.warningBg,c:C.warning}};
-  const c=m[type]||m.link;
-  return <div style={{width:36,height:36,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:c.bg,color:c.c,flexShrink:0}}><Ic d={c.ic} size={14} sw={2}/></div>;
+  const m={password:{i:ic.lock,bg:C.redBg,c:C.red},link:{i:ic.ext,bg:C.blueBg,c:C.blue},file:{i:ic.file,bg:C.amberBg,c:C.amber}};const c=m[type]||m.link;
+  return <div style={{width:36,height:36,borderRadius:4,display:"flex",alignItems:"center",justifyContent:"center",background:c.bg,color:c.c,flexShrink:0}}><Ic d={c.i} size={15} sw={2}/></div>;
 }
 
-// ─── CSV ───
-function parseCSV(text){
-  const lines=text.split("\n").map(l=>l.trim()).filter(Boolean);
-  if(lines.length<2)return[];
-  const hdr=lines[0].split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
-  return lines.slice(1).map(line=>{
-    const v=[];let cur="",q=false;
-    for(let i=0;i<line.length;i++){if(line[i]==='"')q=!q;else if(line[i]===','&&!q){v.push(cur.trim());cur=""}else cur+=line[i]}
-    v.push(cur.trim());
-    const o={};hdr.forEach((h,i)=>{o[h]=(v[i]||"").replace(/^"|"$/g,"")});return o;
-  });
-}
-function csvToRes(rows,email,cats){
-  return rows.filter(r=>r.name).map(r=>{
-    let type="link";const cat=(r.category||"").trim();const rt=(r.type||"").trim().toLowerCase();
-    if(cat.toLowerCase()==="passwords"||rt==="password"||rt==="pwd")type="password";
-    else if(rt==="file"||rt==="document"||rt==="pdf")type="file";
-    else if(rt==="link"||rt==="url")type="link";
-    else{const val=(r.value||r.url||"").trim();if(val.startsWith("http"))type="link";else if(val.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|csv|zip)$/i))type="file";else if(cat.toLowerCase().includes("password"))type="password"}
-    return{id:r.id||gid(),category:cats.includes(cat)?cat:"Quick Links",name:r.name,type,value:r.value||r.url||r.password||"",description:r.description||"",addedBy:email,addedAt:new Date().toISOString()};
-  });
-}
-function csvToUsers(rows){
-  return rows.filter(r=>r.email&&r.name).map(r=>({id:gid(),email:r.email.trim().toLowerCase(),name:r.name.trim(),role:["Admin","Sales Rep","Viewer"].includes(r.role)?r.role:"Viewer",sso:true}));
-}
+// ══════ CSV ══════
+function parseCSV(t){const ls=t.split("\n").map(l=>l.trim()).filter(Boolean);if(ls.length<2)return[];const h=ls[0].split(",").map(x=>x.replace(/^"|"$/g,"").trim().toLowerCase());return ls.slice(1).map(l=>{const v=[];let c="",q=false;for(let i=0;i<l.length;i++){if(l[i]==='"')q=!q;else if(l[i]===','&&!q){v.push(c.trim());c=""}else c+=l[i]}v.push(c.trim());const o={};h.forEach((x,i)=>{o[x]=(v[i]||"").replace(/^"|"$/g,"")});return o})}
+function csvToRes(rows,email,cats){return rows.filter(r=>r.name).map(r=>{let type="link";const cat=(r.category||"").trim();const rt=(r.type||"").trim().toLowerCase();if(cat.toLowerCase()==="passwords"||rt==="password"||rt==="pwd")type="password";else if(rt==="file"||rt==="document"||rt==="pdf")type="file";else if(rt==="link"||rt==="url")type="link";else{const v=(r.value||r.url||"").trim();if(v.startsWith("http"))type="link";else if(v.match(/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|csv|zip)$/i))type="file";else if(cat.toLowerCase().includes("password"))type="password"}return{id:r.id||gid(),category:cats.includes(cat)?cat:"Quick Links",name:r.name,type,value:r.value||r.url||r.password||"",description:r.description||"",addedBy:email,addedAt:new Date().toISOString()}})}
+function csvToUsers(rows){return rows.filter(r=>r.email&&r.name).map(r=>({id:gid(),email:r.email.trim().toLowerCase(),name:r.name.trim(),role:["Admin","Sales Rep","Viewer"].includes(r.role)?r.role:"Viewer",sso:true}))}
 
-// ─── Google Icon ───
+// ══════ GOOGLE ICON ══════
 function GoogleIcon(){return <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>}
 
-// ─── Login Screen (SSO Only) ───
+// ══════ LOGIN ══════
 function LoginScreen({onSSOLogin,setToast}){
-  const [demoEmail,setDemoEmail]=useState("admin@itgeeks.com");
   const gBtnRef=useRef(null);
-  const isDemoMode=GOOGLE_CLIENT_ID==="YOUR_CLIENT_ID.apps.googleusercontent.com";
-
   useEffect(()=>{
-    if(isDemoMode)return;
-    const script=document.createElement("script");
-    script.src="https://accounts.google.com/gsi/client";script.async=true;
-    script.onload=()=>{
-      if(window.google&&gBtnRef.current){
-        window.google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:(response)=>{
-          try{const p=JSON.parse(atob(response.credential.split(".")[1]));onSSOLogin({email:p.email,name:p.name||p.email.split("@")[0],picture:p.picture||null,hd:p.hd||null})}
-          catch{setToast({message:"SSO authentication failed",type:"error"})}
-        },auto_select:false,hosted_domain:"itgeeks.com"});
-        window.google.accounts.id.renderButton(gBtnRef.current,{theme:"outline",size:"large",width:340,text:"signin_with",shape:"rectangular"});
-      }
-    };document.head.appendChild(script);
-    return()=>{try{document.head.removeChild(script)}catch{}}
+    if(IS_DEMO)return;
+    const s=document.createElement("script");s.src="https://accounts.google.com/gsi/client";s.async=true;
+    s.onload=()=>{if(window.google&&gBtnRef.current){window.google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:(r)=>{try{const p=JSON.parse(atob(r.credential.split(".")[1]));onSSOLogin({email:p.email,name:p.name||p.email.split("@")[0],picture:p.picture||null,hd:p.hd||null})}catch{setToast({message:"Authentication failed",type:"error"})}},auto_select:false,hosted_domain:"itgeeks.com"});window.google.accounts.id.renderButton(gBtnRef.current,{theme:"outline",size:"large",width:320,text:"signin_with",shape:"rectangular"})}};
+    document.head.appendChild(s);return()=>{try{document.head.removeChild(s)}catch{}}
   },[]);
 
-  const demoAccounts=[{email:"admin@itgeeks.com",name:"Admin User",role:"Admin"},{email:"sales@itgeeks.com",name:"Sales User",role:"Sales Rep"},{email:"viewer@itgeeks.com",name:"Viewer User",role:"Viewer"}];
+  return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",backgroundImage:"url(\"data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E\")"}}>
+    <div style={{width:480,position:"relative"}}>
+      {/* Stacked folder tabs behind */}
+      <div style={{position:"absolute",top:-8,left:20,right:20,height:40,background:"#d4cbb8",borderRadius:"6px 6px 0 0",transform:"translateY(-100%)"}}/>
+      <div style={{position:"absolute",top:-4,left:10,right:10,height:40,background:"#dfd7c6",borderRadius:"6px 6px 0 0",transform:"translateY(-100%)"}}/>
+      {/* Main folder card */}
+      <div className="card" style={{padding:"40px 44px",position:"relative"}}>
+        {/* Confidential stamp */}
+        <div style={{position:"absolute",top:20,right:24}}><span className="stamp">Confidential</span></div>
+        {/* Paperclip decoration */}
+        <div style={{position:"absolute",top:-12,left:60,color:C.textMuted,opacity:.4,transform:"rotate(15deg)"}}><Ic d={ic.clip} size={32} sw={1.2}/></div>
 
-  return <div style={{minHeight:"100vh",background:C.bg,display:"flex"}}>
-    <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:40,background:C.surfaceWarm}}>
-      <div style={{width:280,height:220,borderRadius:16,background:C.bg,border:`2px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:28}}>
-        <div style={{textAlign:"center"}}>
-          <div style={{width:64,height:64,background:C.accent,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:26,fontWeight:700,color:"#fff"}}>iG</div>
-          <div style={{fontSize:13,color:C.textSec,maxWidth:220,lineHeight:1.5}}>Your centralized hub for sales documents, credentials, and team resources</div>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{display:"inline-block",padding:"6px 16px",border:`1.5px solid ${C.border}`,borderRadius:30,marginBottom:16}}>
+            <span style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,fontWeight:700,color:C.text}}>I.G</span>
+          </div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:C.textMuted,textTransform:"uppercase",letterSpacing:".1em",marginBottom:4}}>ITGeeks Resource Hub</div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:10,color:C.textMuted,letterSpacing:".05em"}}>.SECURE ACCESS PORTAL.</div>
+        </div>
+
+        <h1 style={{fontFamily:"'Libre Baskerville',serif",fontSize:28,fontWeight:700,color:C.text,marginBottom:8,textAlign:"center"}}>"RESOURCE HUB"</h1>
+        <p style={{textAlign:"center",fontSize:13,color:C.textMuted,marginBottom:32,fontFamily:"'DM Mono',monospace"}}>Sign in with your @itgeeks.com account</p>
+
+        {/* Google SSO */}
+        {!IS_DEMO?<div ref={gBtnRef} style={{display:"flex",justifyContent:"center",marginBottom:20}}/>:
+        <div>
+          <button onClick={()=>onSSOLogin({email:"admin@itgeeks.com",name:"Admin",picture:null,hd:"itgeeks.com"})} style={{width:"100%",padding:"14px 20px",background:"#faf6ef",border:`1.5px solid ${C.border}`,borderRadius:4,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:12,fontSize:14,fontWeight:500,color:C.text,fontFamily:"inherit",boxShadow:C.shadow}}><GoogleIcon/> Sign in with Google</button>
+          <p style={{textAlign:"center",fontSize:11,color:C.amber,marginTop:12,fontFamily:"'DM Mono',monospace"}}>DEMO MODE — Configure Google Client ID for production</p>
+        </div>}
+
+        <div style={{marginTop:28,borderTop:`1px solid ${C.border}`,paddingTop:16,textAlign:"center"}}>
+          <p style={{fontSize:11,color:C.textMuted,lineHeight:1.7,fontFamily:"'DM Mono',monospace"}}>
+            Only @itgeeks.com accounts permitted.<br/>New users auto-assigned as Viewer.<br/>Contact Admin for role upgrade.
+          </p>
         </div>
       </div>
-      <h2 style={{fontSize:20,fontWeight:700,color:C.text,marginBottom:6}}>Secure Resource Hub</h2>
-      <p style={{fontSize:13,color:C.textMuted,textAlign:"center",maxWidth:300,lineHeight:1.5}}>Access case studies, proposals, bank details, call sheets, and passwords — all in one place with role-based security.</p>
-    </div>
-    <div style={{width:440,display:"flex",flexDirection:"column",justifyContent:"center",padding:"40px 48px",background:C.surface}}>
-      <h1 style={{fontSize:24,fontWeight:700,color:C.text,marginBottom:6}}>Welcome</h1>
-      <p style={{fontSize:13,color:C.textMuted,marginBottom:32}}>Sign in with your @itgeeks.com Google Workspace account</p>
-      {!isDemoMode&&<div ref={gBtnRef} style={{marginBottom:16,display:"flex",justifyContent:"center"}}/>}
-      {isDemoMode&&<>
-        <button onClick={()=>{const acc=demoAccounts.find(a=>a.email===demoEmail);onSSOLogin({email:acc.email,name:acc.name,picture:null,hd:"itgeeks.com"})}} style={{width:"100%",padding:"14px 20px",background:C.surface,border:`1.5px solid ${C.border}`,borderRadius:12,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:12,fontSize:15,fontWeight:500,color:C.text,fontFamily:"inherit",boxShadow:C.shadow}}><GoogleIcon/> Sign in with Google</button>
-        <div style={{marginTop:20,padding:16,background:C.warningBg,borderRadius:10,border:`1px solid ${C.warning}30`}}>
-          <p style={{margin:"0 0 10px",fontSize:12,color:C.warning,fontWeight:600}}>Demo Mode — Select a role to test</p>
-          {demoAccounts.map(acc=><label key={acc.email} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:demoEmail===acc.email?C.surface:"transparent",borderRadius:8,cursor:"pointer",border:demoEmail===acc.email?`1px solid ${C.border}`:"1px solid transparent",marginBottom:4}}>
-            <input type="radio" name="demo" checked={demoEmail===acc.email} onChange={()=>setDemoEmail(acc.email)} style={{accentColor:C.accent}}/>
-            <div style={{flex:1}}><div style={{fontSize:13,fontWeight:500,color:C.text}}>{acc.name}</div><div style={{fontSize:11,color:C.textMuted}}>{acc.email}</div></div>
-            <RoleBadge role={acc.role}/>
-          </label>)}
-        </div>
-      </>}
-      <div style={{marginTop:24,textAlign:"center"}}><p style={{fontSize:11,color:C.textMuted,lineHeight:1.6}}>Only @itgeeks.com accounts are allowed.<br/>New users are auto-registered as Viewer.<br/>Contact your Admin to upgrade your role.</p></div>
     </div>
   </div>;
 }
 
-// ═══════════════════════════════════════
+// ══════════════════════════════
 function App(){
   const [user,setUser]=useState(null);
   const [users,setUsers]=useState(()=>ld(SK.users,DEF_USERS));
@@ -220,283 +186,231 @@ function App(){
   const [clipCount,setClipCount]=useState(0);
   const [newCat,setNewCat]=useState("");
   const clipRef=useRef(null);const impRef=useRef(null);const userImpRef=useRef(null);
-
   const isAdmin=user?.role==="Admin";
 
   const persist=(k,d,fn)=>{fn(d);sv(k,d)};
-  const addLog=(action,detail,curLogs,curUser)=>{const e={id:gid(),user:curUser?.email||"system",userName:curUser?.name||"System",action,detail,timestamp:new Date().toISOString()};const upd=[e,...curLogs].slice(0,500);setLogs(upd);sv(SK.logs,upd);return upd};
+  const addLog=(action,detail,cl,cu)=>{const e={id:gid(),user:cu?.email||"system",action,detail,timestamp:new Date().toISOString()};const u=[e,...cl].slice(0,500);setLogs(u);sv(SK.logs,u);return u};
 
-  const handleSSOLogin=(googleUser)=>{
-    if(!googleUser.email.endsWith("@itgeeks.com")){setToast({message:"Access restricted to @itgeeks.com domain only",type:"error"});return}
-    let eu=users.find(u=>u.email.toLowerCase()===googleUser.email.toLowerCase());
-    if(eu){setUser(eu);addLog("SSO Login",`${eu.name} signed in via Google (${eu.role})`,logs,eu)}
-    else{const nu={id:gid(),email:googleUser.email.toLowerCase(),name:googleUser.name||googleUser.email.split("@")[0],role:"Viewer",sso:true,picture:googleUser.picture||null};const uu=[...users,nu];persist(SK.users,uu,setUsers);setUser(nu);addLog("SSO Login (New)",`${nu.name} auto-registered as Viewer`,logs,nu);setToast({message:`Welcome ${nu.name}! Registered as Viewer.`,type:"success"})}
+  const handleSSOLogin=(gu)=>{
+    if(!gu.email.endsWith("@itgeeks.com")){setToast({message:"@itgeeks.com only",type:"error"});return}
+    let eu=users.find(u=>u.email.toLowerCase()===gu.email.toLowerCase());
+    if(eu){setUser(eu);addLog("SSO Login",`${eu.name} (${eu.role})`,logs,eu)}
+    else{const nu={id:gid(),email:gu.email.toLowerCase(),name:gu.name||gu.email.split("@")[0],role:"Viewer",sso:true};const uu=[...users,nu];persist(SK.users,uu,setUsers);setUser(nu);addLog("SSO Login (New)",`${nu.name} auto-registered`,logs,nu);setToast({message:`Welcome ${nu.name}!`,type:"success"})}
   };
   const handleLogout=()=>{addLog("Logout",`${user.name} signed out`,logs,user);setUser(null);setTab("home")};
 
-  const copyPwd=(r)=>{
-    try{navigator.clipboard.writeText(r.value)}catch{const t=document.createElement("textarea");t.value=r.value;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t)}
-    if(clipRef.current)clearInterval(clipRef.current);setClipCount(10);
-    clipRef.current=setInterval(()=>{setClipCount(p=>{if(p<=1){clearInterval(clipRef.current);clipRef.current=null;try{navigator.clipboard.writeText("")}catch{}return 0}return p-1})},1000);
-    setToast({message:"Password copied — auto-clears in 10s",type:"success"});addLog("Copy Password",`Copied: ${r.name}`,logs,user);
-  };
-  const accessRes=(r)=>{if(r.type==="password")copyPwd(r);else{addLog(r.type==="link"?"Access Link":"Download File",`${r.type==="link"?"Opened":"Downloaded"}: ${r.name}`,logs,user);window.open(r.value,"_blank")}};
+  const copyPwd=(r)=>{try{navigator.clipboard.writeText(r.value)}catch{const t=document.createElement("textarea");t.value=r.value;t.style.cssText="position:fixed;opacity:0";document.body.appendChild(t);t.select();document.execCommand("copy");document.body.removeChild(t)}if(clipRef.current)clearInterval(clipRef.current);setClipCount(10);clipRef.current=setInterval(()=>{setClipCount(p=>{if(p<=1){clearInterval(clipRef.current);clipRef.current=null;try{navigator.clipboard.writeText("")}catch{}return 0}return p-1})},1000);setToast({message:"Copied — auto-clears 10s",type:"success"});addLog("Copy Password",`${r.name}`,logs,user)};
+  const accessRes=(r)=>{if(r.type==="password")copyPwd(r);else{addLog(r.type==="link"?"Access Link":"Download",`${r.name}`,logs,user);window.open(r.value,"_blank")}};
 
-  const addResource=(d)=>{persist(SK.resources,[...res,{...d,id:gid(),addedBy:user.email,addedAt:new Date().toISOString()}],setRes);addLog("Add Resource",`Added "${d.name}"`,logs,user);setShowAddRes(false);setToast({message:"Resource added",type:"success"})};
-  const editResource=(d)=>{persist(SK.resources,res.map(r=>r.id===d.id?{...r,...d}:r),setRes);addLog("Edit Resource",`Edited "${d.name}"`,logs,user);setShowEditRes(null);setToast({message:"Updated",type:"success"})};
-  const deleteResource=(id)=>{const it=res.find(r=>r.id===id);persist(SK.resources,res.filter(r=>r.id!==id),setRes);addLog("Delete",`Deleted "${it?.name}"`,logs,user);setShowDel(null);setToast({message:"Deleted",type:"success"})};
-
-  const addUser=(d)=>{
-    if(!d.email.endsWith("@itgeeks.com")){setToast({message:"Only @itgeeks.com",type:"error"});return}
-    if(users.find(u=>u.email.toLowerCase()===d.email.toLowerCase())){setToast({message:"Email exists",type:"error"});return}
-    persist(SK.users,[...users,{...d,id:gid()}],setUsers);addLog("Add User",`Added ${d.name}`,logs,user);setShowAddUser(false);setToast({message:"User added",type:"success"});
-  };
-  const deleteUser=(id)=>{
-    if(users.find(u=>u.id===id)?.email===user.email){setToast({message:"Cannot remove yourself",type:"error"});return}
-    const usr=users.find(u=>u.id===id);persist(SK.users,users.filter(u=>u.id!==id),setUsers);addLog("Remove User",`Removed ${usr?.name}`,logs,user);setToast({message:"Removed",type:"success"});
-  };
-
-  const handleUserImport=(e)=>{
-    const file=e.target.files[0];if(!file)return;const reader=new FileReader();
-    reader.onload=(ev)=>{try{const rows=parseCSV(ev.target.result);const nu=csvToUsers(rows);const existing=new Set(users.map(u=>u.email.toLowerCase()));const valid=nu.filter(u=>u.email.endsWith("@itgeeks.com")&&!existing.has(u.email));const dupes=nu.length-valid.length;if(valid.length){persist(SK.users,[...users,...valid],setUsers);addLog("Bulk Import",`${valid.length} users`,logs,user)}setToast({message:`${valid.length} added${dupes?`, ${dupes} skipped`:""}`,type:valid.length?"success":"error"})}catch{setToast({message:"Parse error",type:"error"})}};reader.readAsText(file);
-    if(userImpRef.current)userImpRef.current.value="";
-  };
+  const addResource=(d)=>{persist(SK.resources,[...res,{...d,id:gid(),addedBy:user.email,addedAt:new Date().toISOString()}],setRes);addLog("Add",`"${d.name}"`,logs,user);setShowAddRes(false);setToast({message:"Added",type:"success"})};
+  const editResource=(d)=>{persist(SK.resources,res.map(r=>r.id===d.id?{...r,...d}:r),setRes);addLog("Edit",`"${d.name}"`,logs,user);setShowEditRes(null);setToast({message:"Updated",type:"success"})};
+  const deleteResource=(id)=>{const it=res.find(r=>r.id===id);persist(SK.resources,res.filter(r=>r.id!==id),setRes);addLog("Delete",`"${it?.name}"`,logs,user);setShowDel(null);setToast({message:"Deleted",type:"success"})};
+  const addUser=(d)=>{if(!d.email.endsWith("@itgeeks.com")){setToast({message:"@itgeeks.com only",type:"error"});return}if(users.find(u=>u.email.toLowerCase()===d.email.toLowerCase())){setToast({message:"Exists",type:"error"});return}persist(SK.users,[...users,{...d,id:gid()}],setUsers);addLog("Add User",d.name,logs,user);setShowAddUser(false);setToast({message:"Added",type:"success"})};
+  const deleteUser=(id)=>{if(users.find(u=>u.id===id)?.email===user.email){setToast({message:"Can't remove yourself",type:"error"});return}const usr=users.find(u=>u.id===id);persist(SK.users,users.filter(u=>u.id!==id),setUsers);addLog("Remove",usr?.name,logs,user);setToast({message:"Removed",type:"success"})};
+  const handleUserImport=(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{try{const rows=parseCSV(ev.target.result);const nu=csvToUsers(rows);const ex=new Set(users.map(u=>u.email.toLowerCase()));const valid=nu.filter(u=>u.email.endsWith("@itgeeks.com")&&!ex.has(u.email));if(valid.length){persist(SK.users,[...users,...valid],setUsers);addLog("Bulk Import",`${valid.length} users`,logs,user)}setToast({message:`${valid.length} added, ${nu.length-valid.length} skipped`,type:valid.length?"success":"error"})}catch{setToast({message:"Parse error",type:"error"})}};r.readAsText(f);if(userImpRef.current)userImpRef.current.value=""};
 
   const expJSON=()=>{const b=new Blob([JSON.stringify({resources:res,categories:cats,exportDate:new Date().toISOString()},null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`itgeeks_${new Date().toISOString().slice(0,10)}.json`;a.click();addLog("Export","JSON",logs,user);setToast({message:"Exported",type:"success"})};
   const expCSV=()=>{const h=["category","name","type","value","description"];const rows=res.map(r=>h.map(k=>`"${String(r[k]||"").replace(/"/g,'""')}"`).join(","));const b=new Blob([h.join(",")+"\n"+rows.join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=`itgeeks_${new Date().toISOString().slice(0,10)}.csv`;a.click();addLog("Export","CSV",logs,user);setToast({message:"CSV exported",type:"success"})};
-  const handleImport=(e)=>{
-    const file=e.target.files[0];if(!file)return;const ext=file.name.split(".").pop().toLowerCase();const reader=new FileReader();
-    if(ext==="json"){reader.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(d.resources){const ids=new Set(res.map(r=>r.id));const nw=d.resources.filter(r=>!ids.has(r.id));persist(SK.resources,[...res,...nw],setRes);if(d.categories){const merged=[...new Set([...cats,...d.categories])].sort();persist(SK.categories,merged,setCats)}addLog("Import",`${nw.length} from JSON`,logs,user);setToast({message:`${nw.length} imported`,type:"success"})}}catch{setToast({message:"Parse error",type:"error"})}};reader.readAsText(file)}
-    else if(ext==="csv"){reader.onload=(ev)=>{try{const nw=csvToRes(parseCSV(ev.target.result),user.email,cats);if(!nw.length){setToast({message:"No valid rows",type:"error"});return}persist(SK.resources,[...res,...nw],setRes);addLog("Import",`${nw.length} from CSV`,logs,user);setToast({message:`${nw.length} imported`,type:"success"})}catch{setToast({message:"Parse error",type:"error"})}};reader.readAsText(file)}
-    else setToast({message:"Use JSON or CSV",type:"error"});
-    if(impRef.current)impRef.current.value="";
-  };
-
+  const handleImport=(e)=>{const f=e.target.files[0];if(!f)return;const ext=f.name.split(".").pop().toLowerCase();const r=new FileReader();if(ext==="json"){r.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(d.resources){const ids=new Set(res.map(r=>r.id));const nw=d.resources.filter(r=>!ids.has(r.id));persist(SK.resources,[...res,...nw],setRes);if(d.categories){persist(SK.categories,[...new Set([...cats,...d.categories])].sort(),setCats)}addLog("Import",`${nw.length} from JSON`,logs,user);setToast({message:`${nw.length} imported`,type:"success"})}}catch{setToast({message:"Parse error",type:"error"})}};r.readAsText(f)}else if(ext==="csv"){r.onload=(ev)=>{try{const nw=csvToRes(parseCSV(ev.target.result),user.email,cats);if(!nw.length){setToast({message:"No valid rows",type:"error"});return}persist(SK.resources,[...res,...nw],setRes);addLog("Import",`${nw.length} from CSV`,logs,user);setToast({message:`${nw.length} imported`,type:"success"})}catch{setToast({message:"Parse error",type:"error"})}};r.readAsText(f)}else setToast({message:"Use JSON or CSV",type:"error"});if(impRef.current)impRef.current.value=""};
   const flushAll=()=>{persist(SK.resources,[],setRes);persist(SK.logs,[],setLogs);persist(SK.users,DEF_USERS,setUsers);persist(SK.categories,DEF_CATS,setCats);setShowFlush(false);setToast({message:"All data flushed",type:"success"})};
-  const addCategory=()=>{const n=newCat.trim();if(!n)return;if(cats.includes(n)){setToast({message:"Already exists",type:"error"});return}const upd=[...cats,n].sort();persist(SK.categories,upd,setCats);setNewCat("");addLog("Add Category",`Added "${n}"`,logs,user);setToast({message:`"${n}" added`,type:"success"})};
-  const removeCategory=(c)=>{persist(SK.categories,cats.filter(x=>x!==c),setCats);addLog("Remove Category",`Removed "${c}"`,logs,user);setToast({message:`Removed "${c}"`,type:"success"})};
+  const addCategory=()=>{const n=newCat.trim();if(!n)return;if(cats.includes(n)){setToast({message:"Exists",type:"error"});return}persist(SK.categories,[...cats,n].sort(),setCats);setNewCat("");addLog("Add Category",`"${n}"`,logs,user);setToast({message:`"${n}" added`,type:"success"})};
+  const removeCategory=(c)=>{persist(SK.categories,cats.filter(x=>x!==c),setCats);addLog("Remove Category",c,logs,user);setToast({message:`Removed`,type:"success"})};
 
-  const filtered=res.filter(r=>{const cm=filterCat==="All"||r.category===filterCat;const sm=!search||r.name.toLowerCase().includes(search.toLowerCase())||r.description?.toLowerCase().includes(search.toLowerCase());return cm&&sm});
+  const filtered=res.filter(r=>(filterCat==="All"||r.category===filterCat)&&(!search||r.name.toLowerCase().includes(search.toLowerCase())||r.description?.toLowerCase().includes(search.toLowerCase())));
   const grouped=filtered.reduce((a,r)=>{(a[r.category]=a[r.category]||[]).push(r);return a},{});
-  const logActions=[...new Set(logs.map(l=>l.action))];
-  const fLogs=logFilter==="All"?logs:logs.filter(l=>l.action===logFilter);
+  const fLogs=(logFilter==="All"?logs:logs.filter(l=>l.action===logFilter)).slice(0,100);
 
   if(!user)return <><LoginScreen onSSOLogin={handleSSOLogin} setToast={setToast}/>{toast&&<Toast {...toast} onClose={()=>setToast(null)}/>}</>;
 
-  const nav=[{id:"home",label:"Home",ic:icons.home},{id:"resources",label:"Category",ic:icons.category},...(isAdmin?[{id:"users",label:"Users",ic:icons.users},{id:"logs",label:"Activity",ic:icons.activity},{id:"ie",label:"Download",ic:icons.download},{id:"settings",label:"Settings",ic:icons.settings}]:[])];
-  const stats=[{l:"Total",v:res.length,c:C.blue},{l:"Passwords",v:res.filter(r=>r.type==="password").length,c:C.danger},{l:"Links",v:res.filter(r=>r.type==="link").length,c:C.success},{l:"Files",v:res.filter(r=>r.type==="file").length,c:C.warning}];
+  const nav=[{id:"home",l:"Home",i:ic.home},{id:"resources",l:"Files",i:ic.cat},...(isAdmin?[{id:"users",l:"Users",i:ic.users},{id:"logs",l:"Logs",i:ic.log},{id:"ie",l:"Export",i:ic.dl},{id:"settings",l:"Config",i:ic.gear}]:[])];
 
   return <>
-  <div style={{display:"flex",minHeight:"100vh",background:C.bg,color:C.text}}>
+  <div style={{display:"flex",minHeight:"100vh",background:C.bg,color:C.text,backgroundImage:"url(\"data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E\")"}}>
     {/* SIDEBAR */}
-    <aside style={{width:88,background:C.sidebar,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",alignItems:"center",paddingTop:20,flexShrink:0}}>
-      <div style={{width:40,height:40,background:C.accent,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#fff",marginBottom:28}}>iG</div>
-      <nav style={{flex:1,display:"flex",flexDirection:"column",gap:4,width:"100%"}}>
-        {nav.map(n=><div key={n.id} className="nv" onClick={()=>setTab(n.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px",cursor:"pointer",borderRadius:8,margin:"0 8px",color:tab===n.id?C.accent:C.textMuted,background:tab===n.id?C.accentLight:"transparent",transition:"all .12s"}}><Ic d={n.ic}/><span style={{fontSize:10,fontWeight:500}}>{n.label}</span></div>)}
+    <aside style={{width:78,background:C.sidebar,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",alignItems:"center",paddingTop:18,flexShrink:0}}>
+      <div style={{padding:"5px 12px",border:`1.5px solid ${C.border}`,borderRadius:20,marginBottom:24}}>
+        <span style={{fontFamily:"'Libre Baskerville',serif",fontSize:12,fontWeight:700,color:C.text}}>I.G</span>
+      </div>
+      <nav style={{flex:1,display:"flex",flexDirection:"column",gap:2,width:"100%"}}>
+        {nav.map(n=><div key={n.id} className="nv" onClick={()=>setTab(n.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"9px 4px",cursor:"pointer",borderRadius:4,margin:"0 6px",color:tab===n.id?C.accentDark:C.textMuted,background:tab===n.id?C.accentLight:"transparent",transition:"all .12s"}}><Ic d={n.i} size={18}/><span style={{fontSize:9,fontWeight:500,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".05em"}}>{n.l}</span></div>)}
       </nav>
-      <div style={{paddingBottom:16}}><div className="nv" onClick={handleLogout} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px",cursor:"pointer",borderRadius:8,margin:"0 8px",color:C.danger}}><Ic d={icons.logout}/><span style={{fontSize:10,fontWeight:500}}>Logout</span></div></div>
+      <div style={{paddingBottom:14}}><div className="nv" onClick={handleLogout} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"9px 4px",cursor:"pointer",borderRadius:4,margin:"0 6px",color:C.red}}><Ic d={ic.out} size={18}/><span style={{fontSize:9,fontWeight:500,fontFamily:"'DM Mono',monospace"}}>EXIT</span></div></div>
     </aside>
 
-    <main style={{flex:1,overflow:"auto",padding:"24px 32px"}}>
-      {/* Clipboard banner */}
-      {clipCount>0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 16px",marginBottom:16,background:C.warningBg,border:`1px solid ${C.warning}40`,borderRadius:10}}>
-        <div style={{display:"flex",alignItems:"center",gap:8,fontSize:13,color:C.warning,fontWeight:500}}><Ic d={icons.lock} size={14} sw={2}/><span>Password in clipboard — auto-clears in <strong>{clipCount}s</strong></span></div>
-        <button onClick={()=>{if(clipRef.current)clearInterval(clipRef.current);try{navigator.clipboard.writeText("")}catch{}setClipCount(0);setToast({message:"Cleared",type:"success"})}} style={{background:C.warning,color:"#fff",border:"none",borderRadius:6,padding:"4px 12px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Clear Now</button>
+    <main style={{flex:1,overflow:"auto",padding:"20px 28px"}}>
+      {clipCount>0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",marginBottom:14,background:C.amberBg,border:`1px solid ${C.amber}40`,borderRadius:4}}>
+        <span style={{fontSize:12,color:C.amber,fontWeight:500,fontFamily:"'DM Mono',monospace"}}><Ic d={ic.lock} size={12} sw={2}/> Clipboard auto-clears: {clipCount}s</span>
+        <button onClick={()=>{if(clipRef.current)clearInterval(clipRef.current);try{navigator.clipboard.writeText("")}catch{}setClipCount(0)}} style={{background:C.amber,color:"#fff",border:"none",borderRadius:2,padding:"3px 10px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>CLEAR</button>
       </div>}
 
-      {/* User badge */}
-      <div style={{display:"flex",justifyContent:"flex-end",marginBottom:16}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 14px",background:C.surface,borderRadius:10,border:`1px solid ${C.borderLight}`}}>
-          <div style={{width:30,height:30,borderRadius:8,background:C.accentLight,color:C.accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700}}>{user.name.charAt(0)}</div>
-          <div><div style={{fontSize:12,fontWeight:600}}>{user.name}</div><div style={{fontSize:10,color:C.textMuted}}>{user.email}</div></div>
+      {/* User badge + confidential stamp */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+        <span className="stamp">Confidential</span>
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",background:C.surface,borderRadius:4,border:`1px solid ${C.borderLight}`}}>
+          <div style={{width:28,height:28,borderRadius:4,background:C.accentLight,color:C.accentDark,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,fontFamily:"'Libre Baskerville',serif"}}>{user.name.charAt(0)}</div>
+          <div><div style={{fontSize:12,fontWeight:600}}>{user.name}</div><div style={{fontSize:10,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>{user.email}</div></div>
           <RoleBadge role={user.role}/>
         </div>
       </div>
 
-      {/* HOME */}
+      {/* ═══ HOME ═══ */}
       {tab==="home"&&<div style={{animation:"fadeUp .25s ease"}}>
-        <h2 style={{fontSize:22,fontWeight:700,margin:"0 0 4px"}}>Welcome, {user.name.split(" ")[0]}</h2>
-        <p style={{color:C.textMuted,fontSize:13,margin:"0 0 22px"}}>Your resource hub overview</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(170px, 1fr))",gap:14,marginBottom:26}}>
-          {stats.map(s=><div key={s.l} style={{padding:"18px 20px",background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow}}><div style={{fontSize:11,color:C.textMuted,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>{s.l}</div><div style={{fontSize:28,fontWeight:700,color:s.c}}>{s.v}</div></div>)}
+        <h2 style={{fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,margin:"0 0 4px"}}>Welcome, {user.name.split(" ")[0]}</h2>
+        <p style={{color:C.textMuted,fontSize:12,fontFamily:"'DM Mono',monospace",margin:"0 0 20px"}}>RESOURCE HUB OVERVIEW</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(160px, 1fr))",gap:12,marginBottom:24}}>
+          {[{l:"Total",v:res.length,c:C.blue},{l:"Passwords",v:res.filter(r=>r.type==="password").length,c:C.red},{l:"Links",v:res.filter(r=>r.type==="link").length,c:C.green},{l:"Files",v:res.filter(r=>r.type==="file").length,c:C.amber}].map(s=><div key={s.l} className="card" style={{padding:"16px 18px"}}><div style={{fontSize:10,color:C.textMuted,fontWeight:500,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>{s.l}</div><div style={{fontSize:28,fontWeight:700,color:s.c,fontFamily:"'Libre Baskerville',serif"}}>{s.v}</div></div>)}
         </div>
-        <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,padding:"18px 20px"}}>
-          <h3 style={{fontSize:14,fontWeight:600,margin:"0 0 14px"}}>Recent Resources</h3>
+        <div className="card" style={{padding:"16px 18px"}}>
+          <h3 style={{fontSize:13,fontWeight:600,margin:"0 0 12px",fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".05em"}}>Recent Files</h3>
           {res.length===0?<p style={{color:C.textMuted,fontSize:13}}>No resources yet.</p>:
-          res.slice(-5).reverse().map(r=><div key={r.id} className="rh" onClick={()=>accessRes(r)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",borderRadius:8,cursor:"pointer",marginBottom:2,transition:"all .12s"}}><div style={{display:"flex",alignItems:"center",gap:12}}><TypeIcon type={r.type}/><div><div style={{fontSize:13,fontWeight:500}}>{r.name}</div><div style={{fontSize:11,color:C.textMuted}}>{r.category}</div></div></div><span style={{fontSize:11,color:C.textMuted}}>{r.type==="password"?"Copy":r.type==="file"?"Download":"Open"}</span></div>)}
+          res.slice(-5).reverse().map(r=><div key={r.id} className="rh" onClick={()=>accessRes(r)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 10px",borderRadius:4,cursor:"pointer",marginBottom:2}}><div style={{display:"flex",alignItems:"center",gap:10}}><TypeIcon type={r.type}/><div><div style={{fontSize:13,fontWeight:500}}>{r.name}</div><div style={{fontSize:11,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>{r.category}</div></div></div><span style={{fontSize:10,color:C.textMuted,fontFamily:"'DM Mono',monospace",textTransform:"uppercase"}}>{r.type==="password"?"COPY":r.type==="file"?"DL":"OPEN"}</span></div>)}
         </div>
       </div>}
 
-      {/* RESOURCES */}
+      {/* ═══ RESOURCES ═══ */}
       {tab==="resources"&&<div style={{animation:"fadeUp .25s ease"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4,flexWrap:"wrap",gap:10}}>
-          <div><h2 style={{fontSize:22,fontWeight:700,margin:0}}>All Resources</h2><p style={{color:C.textMuted,fontSize:13,margin:"3px 0 0"}}>{filtered.length} items</p></div>
+          <div><h2 style={{fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,margin:0}}>All Files</h2><p style={{color:C.textMuted,fontSize:12,fontFamily:"'DM Mono',monospace",margin:"3px 0 0"}}>{filtered.length} ITEMS</p></div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <div style={{position:"relative"}}><span style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",color:C.textMuted,display:"flex"}}><Ic d={icons.search} size={16} sw={2}/></span><input placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)} style={{...iS,paddingLeft:34,width:200,background:C.surface}}/></div>
-            {isAdmin&&<Btn icon={<Ic d={icons.plus} size={15} sw={2.2}/>} onClick={()=>setShowAddRes(true)}>Add Resource</Btn>}
+            <div style={{position:"relative"}}><span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:C.textMuted,display:"flex"}}><Ic d={ic.search} size={14} sw={2}/></span><input placeholder="Search..." value={search} onChange={e=>setSearch(e.target.value)} style={{...iS,paddingLeft:32,width:180}}/></div>
+            {isAdmin&&<Btn icon={<Ic d={ic.plus} size={14} sw={2.2}/>} onClick={()=>setShowAddRes(true)}>ADD</Btn>}
           </div>
         </div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:8,margin:"16px 0 24px"}}>
-          {["All",...cats].map(c=><button key={c} onClick={()=>setFilterCat(c)} style={{padding:"7px 18px",borderRadius:22,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"inherit",transition:"all .15s",border:filterCat===c?"none":`1px solid ${C.border}`,background:filterCat===c?C.accent:C.surface,color:filterCat===c?"#fff":C.textSec}}>{c}</button>)}
+        {/* Folder tabs */}
+        <div style={{display:"flex",flexWrap:"wrap",gap:2,margin:"14px 0 0",borderBottom:`1px solid ${C.border}`}}>
+          {["All",...cats].map(c=><button key={c} className={`folder-tab${filterCat===c?" active":""}`} onClick={()=>setFilterCat(c)}>{c}</button>)}
         </div>
-        {Object.keys(grouped).length===0?<div style={{textAlign:"center",padding:50,color:C.textMuted}}>No resources found</div>:
-        Object.entries(grouped).map(([cat,items])=><div key={cat} style={{marginBottom:22}}>
-          <h3 style={{fontSize:12,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:".06em",marginBottom:8}}>{cat}</h3>
-          <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,overflow:"hidden"}}>
-            {items.map((r,i)=><div key={r.id} className="rh" style={{display:"flex",alignItems:"center",padding:"13px 18px",borderBottom:i<items.length-1?`1px solid ${C.borderLight}`:"none",gap:14}}>
+        <div style={{background:C.surface,borderRadius:"0 0 4px 4px",border:`1px solid ${C.borderLight}`,borderTop:"none",padding:"16px 0",marginBottom:20}}>
+          {Object.keys(grouped).length===0?<div style={{textAlign:"center",padding:40,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>NO FILES FOUND</div>:
+          Object.entries(grouped).map(([cat,items])=><div key={cat} style={{marginBottom:16,padding:"0 18px"}}>
+            <h3 style={{fontSize:11,fontWeight:500,color:C.textMuted,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".08em",marginBottom:8,display:"flex",alignItems:"center",gap:6}}><Ic d={ic.tag} size={12} sw={1.5}/>{cat}</h3>
+            {items.map((r,i)=><div key={r.id} className="rh" style={{display:"flex",alignItems:"center",padding:"11px 14px",borderRadius:4,gap:12,borderBottom:i<items.length-1?`1px solid ${C.borderLight}`:"none"}}>
               <TypeIcon type={r.type}/>
-              <div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:600,marginBottom:1}}>{r.name}</div><div style={{fontSize:12,color:C.textMuted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.description||"—"}</div>{r.type==="password"&&<div style={{fontSize:13,color:C.textMuted,marginTop:2,letterSpacing:3,userSelect:"none"}}>●●●●●●●●●●</div>}</div>
-              <div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
-                {r.type==="password"&&<Btn variant="ghost" size="sm" icon={<Ic d={icons.copy} size={14} sw={2}/>} onClick={()=>copyPwd(r)}>Copy</Btn>}
-                {r.type!=="password"&&<Btn variant="ghost" size="sm" icon={<Ic d={icons.extLink} size={14} sw={2}/>} onClick={()=>accessRes(r)}>Open</Btn>}
-                {r.type!=="password"&&<Btn variant="ghost" size="sm" icon={<Ic d={icons.dl} size={14} sw={2}/>} onClick={()=>accessRes(r)}>Download</Btn>}
-                {isAdmin&&<><Btn variant="ghost" size="sm" icon={<Ic d={icons.edit} size={14} sw={2}/>} onClick={()=>setShowEditRes(r)} style={{color:C.textMuted}}/><Btn variant="ghost" size="sm" icon={<Ic d={icons.trash} size={14} sw={2}/>} onClick={()=>setShowDel(r.id)} style={{color:C.danger}}/></>}
+              <div style={{flex:1,minWidth:0}}><div style={{fontSize:14,fontWeight:600,marginBottom:1}}>{r.name}</div><div style={{fontSize:12,color:C.textMuted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.description||"—"}</div>{r.type==="password"&&<div style={{fontSize:13,color:C.textMuted,marginTop:2,letterSpacing:3,userSelect:"none",fontFamily:"'DM Mono',monospace"}}>●●●●●●●●●●</div>}</div>
+              <div style={{display:"flex",gap:4,alignItems:"center",flexShrink:0}}>
+                {r.type==="password"&&<Btn variant="ghost" size="sm" icon={<Ic d={ic.copy} size={12} sw={2}/>} onClick={()=>copyPwd(r)}>COPY</Btn>}
+                {r.type!=="password"&&<Btn variant="ghost" size="sm" icon={<Ic d={ic.ext} size={12} sw={2}/>} onClick={()=>accessRes(r)}>OPEN</Btn>}
+                {r.type!=="password"&&<Btn variant="ghost" size="sm" icon={<Ic d={ic.dl} size={12} sw={2}/>} onClick={()=>accessRes(r)}>DL</Btn>}
+                {isAdmin&&<><Btn variant="ghost" size="sm" icon={<Ic d={ic.edit} size={12} sw={2}/>} onClick={()=>setShowEditRes(r)} style={{color:C.textMuted}}/><Btn variant="ghost" size="sm" icon={<Ic d={ic.trash} size={12} sw={2}/>} onClick={()=>setShowDel(r.id)} style={{color:C.red}}/></>}
               </div>
             </div>)}
-          </div>
-        </div>)}
+          </div>)}
+        </div>
       </div>}
 
-      {/* USERS */}
+      {/* ═══ USERS ═══ */}
       {tab==="users"&&isAdmin&&<div style={{animation:"fadeUp .25s ease"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,flexWrap:"wrap",gap:10}}>
-          <h2 style={{fontSize:22,fontWeight:700,margin:0}}>User Management</h2>
-          <div style={{display:"flex",gap:8}}>
-            <input ref={userImpRef} type="file" accept=".csv" onChange={handleUserImport} style={{display:"none"}}/>
-            <Btn variant="secondary" icon={<Ic d={icons.ul} size={14} sw={2}/>} onClick={()=>userImpRef.current?.click()}>Bulk Upload CSV</Btn>
-            <Btn icon={<Ic d={icons.plus} size={15} sw={2.2}/>} onClick={()=>setShowAddUser(true)}>Add User</Btn>
-          </div>
+          <h2 style={{fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,margin:0}}>Personnel</h2>
+          <div style={{display:"flex",gap:8}}><input ref={userImpRef} type="file" accept=".csv" onChange={handleUserImport} style={{display:"none"}}/><Btn variant="secondary" icon={<Ic d={ic.ul} size={14} sw={2}/>} onClick={()=>userImpRef.current?.click()}>BULK CSV</Btn><Btn icon={<Ic d={ic.plus} size={14} sw={2.2}/>} onClick={()=>setShowAddUser(true)}>ADD</Btn></div>
         </div>
-        <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,overflow:"hidden"}}>
+        <div className="card" style={{overflow:"hidden"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-            <thead><tr style={{borderBottom:`2px solid ${C.borderLight}`}}>{["Name","Email","Role","Actions"].map(h=><th key={h} style={{textAlign:"left",padding:"12px 18px",fontSize:11,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:".05em"}}>{h}</th>)}</tr></thead>
+            <thead><tr style={{borderBottom:`2px solid ${C.border}`}}>{["Name","Email","Role",""].map(h=><th key={h} style={{textAlign:"left",padding:"10px 16px",fontSize:10,fontWeight:500,color:C.textMuted,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".08em"}}>{h}</th>)}</tr></thead>
             <tbody>{users.map(u=><tr key={u.id} className="rh" style={{borderBottom:`1px solid ${C.borderLight}`}}>
-              <td style={{padding:"12px 18px",fontWeight:500}}>{u.name}</td>
-              <td style={{padding:"12px 18px",color:C.textSec}}>{u.email}</td>
-              <td style={{padding:"12px 18px"}}><RoleBadge role={u.role}/></td>
-              <td style={{padding:"12px 18px"}}>{u.email!==user.email?<Btn variant="ghost" size="sm" onClick={()=>deleteUser(u.id)} style={{color:C.danger}}>Remove</Btn>:<span style={{fontSize:11,color:C.textMuted}}>You</span>}</td>
+              <td style={{padding:"10px 16px",fontWeight:500}}>{u.name}</td>
+              <td style={{padding:"10px 16px",color:C.textSec,fontFamily:"'DM Mono',monospace",fontSize:12}}>{u.email}</td>
+              <td style={{padding:"10px 16px"}}><RoleBadge role={u.role}/></td>
+              <td style={{padding:"10px 16px"}}>{u.email!==user.email?<Btn variant="ghost" size="sm" onClick={()=>deleteUser(u.id)} style={{color:C.red}}>REMOVE</Btn>:<span style={{fontSize:10,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>YOU</span>}</td>
             </tr>)}</tbody>
           </table>
         </div>
-        <div style={{marginTop:16,padding:16,background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow}}>
-          <h3 style={{fontSize:14,fontWeight:600,margin:"0 0 8px"}}>Bulk Upload Format</h3>
-          <p style={{fontSize:12,color:C.textMuted,lineHeight:1.5}}>CSV headers: <code style={{background:C.surfaceWarm,padding:"2px 6px",borderRadius:4,fontSize:12}}>name, email, role</code>. Role must be <strong>Admin</strong>, <strong>Sales Rep</strong>, or <strong>Viewer</strong>. Duplicates auto-skipped.</p>
-        </div>
+        <div className="card" style={{marginTop:14,padding:16}}><p style={{fontSize:12,color:C.textMuted,fontFamily:"'DM Mono',monospace",lineHeight:1.6}}>CSV FORMAT: name, email, role — no password needed (SSO). Duplicates auto-skipped.</p></div>
       </div>}
 
-      {/* LOGS */}
+      {/* ═══ LOGS ═══ */}
       {tab==="logs"&&isAdmin&&<div style={{animation:"fadeUp .25s ease"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,flexWrap:"wrap",gap:10}}>
-          <div><h2 style={{fontSize:22,fontWeight:700,margin:0}}>Activity Logs</h2><p style={{color:C.textMuted,fontSize:13,margin:"3px 0 0"}}>{fLogs.length} entries</p></div>
+          <h2 style={{fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,margin:0}}>Activity Log</h2>
           <div style={{display:"flex",gap:8}}>
-            <select value={logFilter} onChange={e=>setLogFilter(e.target.value)} style={{...iS,width:"auto",background:C.surface}}><option value="All">All</option>{logActions.map(a=><option key={a} value={a}>{a}</option>)}</select>
-            <Btn variant="ghost" size="sm" onClick={()=>{setLogs([]);sv(SK.logs,[]);setToast({message:"Cleared",type:"success"})}}>Clear</Btn>
+            <select value={logFilter} onChange={e=>setLogFilter(e.target.value)} style={{...iS,width:"auto"}}><option value="All">All</option>{[...new Set(logs.map(l=>l.action))].map(a=><option key={a} value={a}>{a}</option>)}</select>
+            <Btn variant="ghost" size="sm" onClick={()=>{setLogs([]);sv(SK.logs,[])}}>CLEAR</Btn>
           </div>
         </div>
-        <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,overflow:"hidden"}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,tableLayout:"fixed"}}>
-            <colgroup><col style={{width:"20%"}}/><col style={{width:"22%"}}/><col style={{width:"16%"}}/><col style={{width:"42%"}}/></colgroup>
-            <thead><tr style={{borderBottom:`2px solid ${C.borderLight}`}}>{["Timestamp","User","Action","Detail"].map(h=><th key={h} style={{textAlign:"left",padding:"12px 18px",fontSize:11,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:".05em"}}>{h}</th>)}</tr></thead>
-            <tbody>
-              {fLogs.length===0?<tr><td colSpan={4} style={{padding:36,textAlign:"center",color:C.textMuted}}>No logs</td></tr>:
-              fLogs.slice(0,100).map(l=>{const ac=l.action.includes("Delete")||l.action.includes("Remove")?C.danger:l.action.includes("Login")||l.action.includes("Logout")?C.warning:l.action.includes("Copy")?C.purple:C.blue;
-                return <tr key={l.id} className="rh" style={{borderBottom:`1px solid ${C.borderLight}`}}>
-                  <td style={{padding:"11px 18px",color:C.textMuted,fontSize:12}}>{fdt(l.timestamp)}</td>
-                  <td style={{padding:"11px 18px",color:C.textSec,fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.user}</td>
-                  <td style={{padding:"11px 18px"}}><span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:`${ac}14`,color:ac}}>{l.action}</span></td>
-                  <td style={{padding:"11px 18px",color:C.textSec,fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.detail}</td>
-                </tr>})}
-            </tbody>
+        <div className="card" style={{overflow:"hidden"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12,tableLayout:"fixed"}}>
+            <colgroup><col style={{width:"22%"}}/><col style={{width:"24%"}}/><col style={{width:"16%"}}/><col style={{width:"38%"}}/></colgroup>
+            <thead><tr style={{borderBottom:`2px solid ${C.border}`}}>{["When","Who","Action","Detail"].map(h=><th key={h} style={{textAlign:"left",padding:"10px 16px",fontSize:10,fontWeight:500,color:C.textMuted,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".08em"}}>{h}</th>)}</tr></thead>
+            <tbody>{fLogs.length===0?<tr><td colSpan={4} style={{padding:30,textAlign:"center",color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>EMPTY</td></tr>:
+            fLogs.map(l=>{const ac=l.action.includes("Delete")||l.action.includes("Remove")?C.red:l.action.includes("Login")||l.action.includes("Logout")?C.amber:l.action.includes("Copy")?"#7554b8":C.blue;
+              return <tr key={l.id} className="rh" style={{borderBottom:`1px solid ${C.borderLight}`}}>
+                <td style={{padding:"9px 16px",color:C.textMuted,fontFamily:"'DM Mono',monospace",fontSize:11}}>{fdt(l.timestamp)}</td>
+                <td style={{padding:"9px 16px",color:C.textSec,fontFamily:"'DM Mono',monospace",fontSize:11,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.user}</td>
+                <td style={{padding:"9px 16px"}}><span style={{padding:"2px 8px",borderRadius:2,fontSize:10,fontWeight:600,background:`${ac}18`,color:ac,fontFamily:"'DM Mono',monospace"}}>{l.action}</span></td>
+                <td style={{padding:"9px 16px",color:C.textSec,fontSize:11,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.detail}</td>
+              </tr>})}</tbody>
           </table>
         </div>
       </div>}
 
-      {/* IMPORT/EXPORT */}
+      {/* ═══ IMPORT/EXPORT ═══ */}
       {tab==="ie"&&isAdmin&&<div style={{animation:"fadeUp .25s ease"}}>
-        <h2 style={{fontSize:22,fontWeight:700,margin:"0 0 4px"}}>Import & Export</h2>
-        <p style={{color:C.textMuted,fontSize:13,margin:"0 0 22px"}}>Backup or restore your data</p>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(260px, 1fr))",gap:14,marginBottom:24}}>
-          {[{title:"Export JSON",desc:"Full backup. Re-importable.",color:C.blue,bg:C.blueLight,action:expJSON,label:"Download JSON",variant:"blue"},{title:"Export CSV",desc:"For Google Sheets.",color:C.success,bg:C.successBg,action:expCSV,label:"Download CSV",variant:"success"},{title:"Import Data",desc:"Upload JSON or CSV.",color:C.warning,bg:C.warningBg,action:()=>impRef.current?.click(),label:"Upload File",variant:"secondary"}].map(item=>
-            <div key={item.title} style={{padding:22,background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:item.bg,color:item.color,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic d={icons.download}/></div><h3 style={{fontSize:14,fontWeight:600,margin:0}}>{item.title}</h3></div>
-              <p style={{fontSize:12,color:C.textMuted,lineHeight:1.5,marginBottom:14}}>{item.desc}</p>
-              <Btn variant={item.variant} onClick={item.action} icon={<Ic d={icons.dl} size={14} sw={2}/>}>{item.label}</Btn>
-            </div>)}
+        <h2 style={{fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,margin:"0 0 4px"}}>Import & Export</h2>
+        <p style={{color:C.textMuted,fontSize:12,fontFamily:"'DM Mono',monospace",margin:"0 0 20px"}}>BACKUP / RESTORE</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))",gap:12,marginBottom:20}}>
+          {[{t:"Export JSON",d:"Full backup.",c:C.blue,bg:C.blueBg,fn:expJSON,l:"JSON",v:"blue"},{t:"Export CSV",d:"For Sheets.",c:C.green,bg:C.greenBg,fn:expCSV,l:"CSV",v:"success"},{t:"Import",d:"JSON or CSV.",c:C.amber,bg:C.amberBg,fn:()=>impRef.current?.click(),l:"UPLOAD",v:"secondary"}].map(x=>
+            <div key={x.t} className="card" style={{padding:20}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><div style={{width:32,height:32,borderRadius:4,background:x.bg,color:x.c,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic d={ic.dl}/></div><h3 style={{fontSize:13,fontWeight:600,margin:0}}>{x.t}</h3></div><p style={{fontSize:12,color:C.textMuted,marginBottom:12}}>{x.d}</p><Btn variant={x.v} onClick={x.fn} icon={<Ic d={ic.dl} size={14} sw={2}/>}>{x.l}</Btn></div>)}
         </div>
         <input ref={impRef} type="file" accept=".json,.csv" onChange={handleImport} style={{display:"none"}}/>
-        <div style={{padding:22,background:C.surface,border:`1px solid ${C.danger}30`,borderRadius:12,boxShadow:C.shadow}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><div style={{width:36,height:36,borderRadius:10,background:C.dangerBg,color:C.danger,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic d={icons.trash} size={14} sw={2}/></div><div><h3 style={{fontSize:14,fontWeight:600,margin:0,color:C.danger}}>Flush All Data</h3><span style={{fontSize:11,color:C.textMuted}}>Danger Zone</span></div></div>
-          <p style={{fontSize:12,color:C.textSec,lineHeight:1.5,marginBottom:14}}>Permanently delete all resources, logs, and reset users.</p>
-          <Btn variant="danger" onClick={()=>setShowFlush(true)} icon={<Ic d={icons.trash} size={14} sw={2}/>}>Flush All Data</Btn>
+        <div className="card" style={{padding:20,borderColor:`${C.red}40`}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><div style={{width:32,height:32,borderRadius:4,background:C.redBg,color:C.red,display:"flex",alignItems:"center",justifyContent:"center"}}><Ic d={ic.trash} size={14} sw={2}/></div><div><h3 style={{fontSize:13,fontWeight:600,margin:0,color:C.red}}>Flush All</h3><span style={{fontSize:10,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>DANGER ZONE</span></div></div>
+          <p style={{fontSize:12,color:C.textSec,marginBottom:12}}>Delete everything. Cannot undo.</p>
+          <Btn variant="danger" onClick={()=>setShowFlush(true)} icon={<Ic d={ic.trash} size={14} sw={2}/>}>FLUSH</Btn>
         </div>
       </div>}
 
-      {/* SETTINGS */}
+      {/* ═══ SETTINGS ═══ */}
       {tab==="settings"&&isAdmin&&<div style={{animation:"fadeUp .25s ease"}}>
-        <h2 style={{fontSize:22,fontWeight:700,margin:"0 0 4px"}}>Settings</h2>
-        <p style={{color:C.textMuted,fontSize:13,margin:"0 0 22px"}}>Manage categories and configuration</p>
-        <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,padding:22,marginBottom:20}}>
-          <h3 style={{fontSize:15,fontWeight:600,margin:"0 0 14px"}}>Category Management</h3>
-          <p style={{fontSize:12,color:C.textMuted,lineHeight:1.5,marginBottom:16}}>Add or remove categories. Changes apply immediately.</p>
-          <div style={{display:"flex",gap:8,marginBottom:20}}><input value={newCat} onChange={e=>setNewCat(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addCategory()} placeholder="New category name..." style={{...iS,flex:1}}/><Btn onClick={addCategory} icon={<Ic d={icons.plus} size={15} sw={2.2}/>} disabled={!newCat.trim()}>Add</Btn></div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-            {cats.map(c=>{const count=res.filter(r=>r.category===c).length;return <div key={c} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",background:C.surfaceWarm,borderRadius:20,border:`1px solid ${C.border}`,fontSize:13,fontWeight:500,color:C.text}}><Ic d={icons.tag} size={14} sw={2}/>{c}<span style={{fontSize:11,color:C.textMuted}}>({count})</span>{count===0&&<button onClick={()=>removeCategory(c)} style={{background:"none",border:"none",color:C.danger,cursor:"pointer",padding:0,display:"flex"}}><Ic d={icons.x} size={14} sw={2}/></button>}</div>})}
-          </div>
-          <p style={{fontSize:11,color:C.textMuted,marginTop:12}}>Categories with resources cannot be removed.</p>
+        <h2 style={{fontFamily:"'Libre Baskerville',serif",fontSize:22,fontWeight:700,margin:"0 0 4px"}}>Configuration</h2>
+        <p style={{color:C.textMuted,fontSize:12,fontFamily:"'DM Mono',monospace",margin:"0 0 20px"}}>SYSTEM SETTINGS</p>
+        <div className="card" style={{padding:20,marginBottom:16}}>
+          <h3 style={{fontSize:14,fontWeight:600,margin:"0 0 12px"}}>Categories</h3>
+          <div style={{display:"flex",gap:8,marginBottom:16}}><input value={newCat} onChange={e=>setNewCat(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addCategory()} placeholder="New category..." style={{...iS,flex:1}}/><Btn onClick={addCategory} icon={<Ic d={ic.plus} size={14} sw={2.2}/>} disabled={!newCat.trim()}>ADD</Btn></div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{cats.map(c=>{const n=res.filter(r=>r.category===c).length;return <div key={c} style={{display:"flex",alignItems:"center",gap:4,padding:"5px 12px",background:C.surfaceWarm,borderRadius:2,border:`1px solid ${C.border}`,fontSize:12,fontWeight:500}}><Ic d={ic.tag} size={11} sw={1.5}/>{c}<span style={{fontSize:10,color:C.textMuted}}>({n})</span>{n===0&&<button onClick={()=>removeCategory(c)} style={{background:"none",border:"none",color:C.red,cursor:"pointer",padding:0,display:"flex"}}><Ic d={ic.x} size={12} sw={2}/></button>}</div>})}</div>
         </div>
-        <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,padding:22,marginBottom:20}}>
-          <h3 style={{fontSize:15,fontWeight:600,margin:"0 0 12px"}}>Google SSO Configuration</h3>
-          <div style={{padding:16,background:C.surfaceWarm,borderRadius:10,border:`1px solid ${C.borderLight}`,fontSize:12,color:C.textSec,lineHeight:1.8}}>
-            <strong style={{color:C.text}}>Step 1:</strong> Go to <span style={{color:C.blue,fontWeight:500}}>console.cloud.google.com</span><br/>
-            <strong style={{color:C.text}}>Step 2:</strong> APIs & Services → Credentials → Create OAuth 2.0 Client ID<br/>
-            <strong style={{color:C.text}}>Step 3:</strong> Application Type: "Web application"<br/>
-            <strong style={{color:C.text}}>Step 4:</strong> Authorized JavaScript Origins: add your Vercel domain<br/>
-            <strong style={{color:C.text}}>Step 5:</strong> Replace <code style={{background:C.bg,padding:"2px 6px",borderRadius:4,fontSize:11}}>YOUR_CLIENT_ID</code> at the top of index.html<br/>
-            <strong style={{color:C.text}}>Step 6:</strong> Restrict OAuth app to @itgeeks.com in Google Workspace Admin
+        <div className="card" style={{padding:20,marginBottom:16}}>
+          <h3 style={{fontSize:14,fontWeight:600,margin:"0 0 10px"}}>Google SSO</h3>
+          <div style={{padding:14,background:C.surfaceWarm,borderRadius:4,border:`1px solid ${C.borderLight}`,fontSize:12,color:C.textSec,lineHeight:1.8,fontFamily:"'DM Mono',monospace"}}>
+            1. console.cloud.google.com → Create/select project<br/>2. APIs & Services → Credentials → OAuth 2.0 Client ID<br/>3. Type: Web application<br/>4. Authorized Origins: your Vercel URL<br/>5. Replace YOUR_CLIENT_ID in index.html<br/>6. Restrict to @itgeeks.com in Workspace Admin
           </div>
-          <div style={{marginTop:12,padding:"8px 14px",background:GOOGLE_CLIENT_ID==="YOUR_CLIENT_ID.apps.googleusercontent.com"?C.warningBg:C.successBg,borderRadius:8,fontSize:12,fontWeight:500,color:GOOGLE_CLIENT_ID==="YOUR_CLIENT_ID.apps.googleusercontent.com"?C.warning:C.success}}>
-            Status: {GOOGLE_CLIENT_ID==="YOUR_CLIENT_ID.apps.googleusercontent.com"?"Demo Mode — SSO simulated":"SSO Active"}
-          </div>
+          <div style={{marginTop:10,padding:"6px 12px",background:IS_DEMO?C.amberBg:C.greenBg,borderRadius:2,fontSize:11,fontWeight:500,color:IS_DEMO?C.amber:C.green,fontFamily:"'DM Mono',monospace",display:"inline-block"}}>{IS_DEMO?"DEMO MODE":"SSO ACTIVE"}</div>
         </div>
-        <div style={{background:C.surface,border:`1px solid ${C.borderLight}`,borderRadius:12,boxShadow:C.shadow,padding:22}}>
-          <h3 style={{fontSize:15,fontWeight:600,margin:"0 0 8px"}}>Database</h3>
-          <p style={{fontSize:12,color:C.textMuted,lineHeight:1.6}}>Data is stored in browser localStorage. Export CSV → upload to Google Sheets for backup. Import CSV back when Sheets data changes.</p>
+        <div className="card" style={{padding:20}}>
+          <h3 style={{fontSize:14,fontWeight:600,margin:"0 0 8px"}}>Storage</h3>
+          <p style={{fontSize:12,color:C.textMuted,lineHeight:1.6}}>localStorage-based. Export CSV → Google Sheets for backup. Re-import when Sheets data changes.</p>
         </div>
       </div>}
-
     </main>
   </div>
 
-  {/* MODALS */}
-  {showAddRes&&<ResModal title="Add Resource" cats={cats} onClose={()=>setShowAddRes(false)} onSave={addResource}/>}
-  {showEditRes&&<ResModal title="Edit Resource" cats={cats} resource={showEditRes} onClose={()=>setShowEditRes(null)} onSave={editResource}/>}
-  {showDel&&<Modal title="Delete Resource" onClose={()=>setShowDel(null)} width={400}><p style={{fontSize:13,color:C.textSec,marginBottom:18}}>Are you sure? Cannot be undone.</p><div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn variant="secondary" onClick={()=>setShowDel(null)}>Cancel</Btn><Btn variant="danger" onClick={()=>deleteResource(showDel)}>Delete</Btn></div></Modal>}
-  {showFlush&&<Modal title="Flush All Data" onClose={()=>setShowFlush(false)} width={440}><div style={{padding:"14px 16px",background:C.dangerBg,borderRadius:8,border:`1px solid ${C.danger}30`,marginBottom:18}}><p style={{margin:0,fontSize:13,color:C.danger,fontWeight:500}}>This will permanently delete:</p><ul style={{margin:"8px 0 0 18px",fontSize:13,color:C.textSec,lineHeight:1.8}}><li>All resources</li><li>All activity logs</li><li>All custom users (reset to defaults)</li></ul></div><div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn variant="secondary" onClick={()=>setShowFlush(false)}>Cancel</Btn><Btn variant="danger" onClick={flushAll} icon={<Ic d={icons.trash} size={14} sw={2}/>}>Flush Everything</Btn></div></Modal>}
+  {showAddRes&&<ResModal t="Add Resource" cats={cats} onClose={()=>setShowAddRes(false)} onSave={addResource}/>}
+  {showEditRes&&<ResModal t="Edit Resource" cats={cats} r={showEditRes} onClose={()=>setShowEditRes(null)} onSave={editResource}/>}
+  {showDel&&<Modal title="Delete" onClose={()=>setShowDel(null)} width={400}><p style={{fontSize:13,color:C.textSec,marginBottom:18}}>Permanently delete this resource?</p><div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn variant="secondary" onClick={()=>setShowDel(null)}>CANCEL</Btn><Btn variant="danger" onClick={()=>deleteResource(showDel)}>DELETE</Btn></div></Modal>}
+  {showFlush&&<Modal title="Flush All Data" onClose={()=>setShowFlush(false)} width={440}><div style={{padding:14,background:C.redBg,borderRadius:4,marginBottom:18}}><p style={{margin:0,fontSize:13,color:C.red,fontWeight:500}}>This deletes everything:</p><ul style={{margin:"8px 0 0 18px",fontSize:13,color:C.textSec,lineHeight:1.8}}><li>All resources</li><li>All logs</li><li>All users (reset)</li></ul></div><div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn variant="secondary" onClick={()=>setShowFlush(false)}>CANCEL</Btn><Btn variant="danger" onClick={flushAll} icon={<Ic d={ic.trash} size={14} sw={2}/>}>FLUSH</Btn></div></Modal>}
   {showAddUser&&<UserModal onClose={()=>setShowAddUser(false)} onSave={addUser}/>}
   {toast&&<Toast {...toast} onClose={()=>setToast(null)}/>}
   </>;
 }
 
-function ResModal({title,resource,cats,onClose,onSave}){
+function ResModal({t,r:resource,cats,onClose,onSave}){
   const [name,setName]=useState(resource?.name||"");const [cat,setCat]=useState(resource?.category||cats[0]||"");const [type,setType]=useState(resource?.type||"link");const [val,setVal]=useState(resource?.value||"");const [desc,setDesc]=useState(resource?.description||"");
-  return <Modal title={title} onClose={onClose}>
-    <FF label="Resource Name"><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. CRM Login" style={iS}/></FF>
-    <FF label="Category"><select value={cat} onChange={e=>setCat(e.target.value)} style={{...iS,cursor:"pointer"}}>{cats.map(c=><option key={c} value={c}>{c}</option>)}</select></FF>
-    <FF label="Type"><select value={type} onChange={e=>setType(e.target.value)} style={{...iS,cursor:"pointer"}}><option value="link">Link / URL</option><option value="password">Password</option><option value="file">File</option></select></FF>
-    <FF label={type==="password"?"Password":type==="link"?"URL":"File Name"}><input value={val} onChange={e=>setVal(e.target.value)} placeholder={type==="password"?"Enter password":type==="link"?"https://...":"filename.pdf"} style={iS}/></FF>
-    <FF label="Description"><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Brief description" style={iS}/></FF>
-    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn variant="secondary" onClick={onClose}>Cancel</Btn><Btn onClick={()=>{if(!name.trim()||!val.trim())return;onSave({...(resource||{}),name:name.trim(),category:cat,type,value:val.trim(),description:desc.trim()})}} disabled={!name.trim()||!val.trim()}>Save</Btn></div>
+  return <Modal title={t} onClose={onClose}>
+    <FF label="Name" ch={<input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. CRM Login" style={iS}/>}/>
+    <FF label="Category" ch={<select value={cat} onChange={e=>setCat(e.target.value)} style={{...iS,cursor:"pointer"}}>{cats.map(c=><option key={c} value={c}>{c}</option>)}</select>}/>
+    <FF label="Type" ch={<select value={type} onChange={e=>setType(e.target.value)} style={{...iS,cursor:"pointer"}}><option value="link">Link</option><option value="password">Password</option><option value="file">File</option></select>}/>
+    <FF label={type==="password"?"Password":type==="link"?"URL":"Filename"} ch={<input value={val} onChange={e=>setVal(e.target.value)} placeholder={type==="password"?"Enter password":type==="link"?"https://...":"file.pdf"} style={iS}/>}/>
+    <FF label="Description" ch={<input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Brief note" style={iS}/>}/>
+    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn variant="secondary" onClick={onClose}>CANCEL</Btn><Btn onClick={()=>{if(!name.trim()||!val.trim())return;onSave({...(resource||{}),name:name.trim(),category:cat,type,value:val.trim(),description:desc.trim()})}} disabled={!name.trim()||!val.trim()}>SAVE</Btn></div>
   </Modal>;
 }
-
 function UserModal({onClose,onSave}){
   const [name,setName]=useState("");const [email,setEmail]=useState("");const [role,setRole]=useState("Viewer");
   return <Modal title="Add User" onClose={onClose}>
-    <FF label="Full Name"><input value={name} onChange={e=>setName(e.target.value)} placeholder="John Doe" style={iS}/></FF>
-    <FF label="Email"><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="user@itgeeks.com" style={iS}/></FF>
-    <FF label="Role"><select value={role} onChange={e=>setRole(e.target.value)} style={{...iS,cursor:"pointer"}}><option value="Admin">Admin</option><option value="Sales Rep">Sales Rep</option><option value="Viewer">Viewer</option></select></FF>
-    <p style={{fontSize:11,color:C.textMuted,marginBottom:12}}>No password needed — user signs in via Google SSO.</p>
-    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn variant="secondary" onClick={onClose}>Cancel</Btn><Btn onClick={()=>{if(!name.trim()||!email.trim())return;onSave({name:name.trim(),email:email.trim().toLowerCase(),role,sso:true})}} disabled={!name.trim()||!email.trim()}>Add User</Btn></div>
+    <FF label="Full Name" ch={<input value={name} onChange={e=>setName(e.target.value)} placeholder="John Doe" style={iS}/>}/>
+    <FF label="Email" ch={<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="user@itgeeks.com" style={iS}/>}/>
+    <FF label="Role" ch={<select value={role} onChange={e=>setRole(e.target.value)} style={{...iS,cursor:"pointer"}}><option value="Admin">Admin</option><option value="Sales Rep">Sales Rep</option><option value="Viewer">Viewer</option></select>}/>
+    <p style={{fontSize:11,color:C.textMuted,marginBottom:12,fontFamily:"'DM Mono',monospace"}}>No password needed — SSO authentication.</p>
+    <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:4}}><Btn variant="secondary" onClick={onClose}>CANCEL</Btn><Btn onClick={()=>{if(!name.trim()||!email.trim())return;onSave({name:name.trim(),email:email.trim().toLowerCase(),role,sso:true})}} disabled={!name.trim()||!email.trim()}>ADD</Btn></div>
   </Modal>;
 }
 
