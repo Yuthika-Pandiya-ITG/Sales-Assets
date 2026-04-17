@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ITGeeks — Resource Hub</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23a0856b'/><text x='50' y='68' text-anchor='middle' fill='white' font-size='44' font-weight='bold' font-family='serif'>iG</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%23a0856b'/><text x='50' y='65' text-anchor='middle' fill='white' font-size='32' font-weight='bold' font-family='serif'>ITG</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -31,9 +31,9 @@ select{color:#4a3f33}
 .card{background:#f5f0e6;border:1px solid #ddd5c6;border-radius:6px;box-shadow:0 1px 4px rgba(74,63,51,0.06);position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none}
 .stamp{display:inline-block;border:2px solid #c43a2f;color:#c43a2f;padding:3px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;transform:rotate(-3deg);font-family:'DM Mono',monospace;animation:stampIn .4s ease}
-.folder-card{cursor:pointer;transition:all .2s ease;position:relative}
+.folder-card{cursor:pointer;transition:all .2s ease;position:relative;margin-top:14px}
 .folder-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(74,63,51,0.12)}
-.folder-card::after{content:'';position:absolute;top:-8px;left:16px;right:60%;height:12px;border-radius:4px 4px 0 0;z-index:-1}
+.folder-card::after{content:'';position:absolute;top:-10px;left:12px;width:60px;height:14px;background:#ede7da;border:1px solid #ddd5c6;border-bottom:none;border-radius:6px 6px 0 0}
 .copy-anim{animation:copyPulse .4s ease}
 .dot-anim{animation:dotReveal .5s ease}
 </style>
@@ -107,7 +107,7 @@ function LoginScreen({onSSOLogin,setToast}){
         <div style={{position:"absolute",top:20,right:24}}><span className="stamp">Confidential</span></div>
         <div style={{position:"absolute",top:-12,left:60,color:C.textMuted,opacity:.4,transform:"rotate(15deg)"}}><Ic d={ic.clip} size={32} sw={1.2}/></div>
         <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{display:"inline-block",padding:"6px 16px",border:`1.5px solid ${C.border}`,borderRadius:30,marginBottom:14}}><span style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,fontWeight:700}}>I.G</span></div>
+          <div style={{display:"inline-block",padding:"6px 16px",border:`1.5px solid ${C.border}`,borderRadius:30,marginBottom:14}}><span style={{fontFamily:"'Libre Baskerville',serif",fontSize:14,fontWeight:700}}>ITG</span></div>
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:C.textMuted,textTransform:"uppercase",letterSpacing:".1em",marginBottom:4}}>ITGeeks Resource Hub</div>
         </div>
         <h1 style={{fontFamily:"'Libre Baskerville',serif",fontSize:26,fontWeight:700,marginBottom:8,textAlign:"center"}}>"RESOURCE HUB"</h1>
@@ -115,7 +115,6 @@ function LoginScreen({onSSOLogin,setToast}){
         {!IS_DEMO?<div ref={gBtnRef} style={{display:"flex",justifyContent:"center",marginBottom:16}}/>:
         <div>
           <button onClick={()=>onSSOLogin({email:"admin@itgeeks.com",name:"Admin",picture:null,hd:"itgeeks.com"})} style={{width:"100%",padding:"14px 20px",background:"#faf6ef",border:`1.5px solid ${C.border}`,borderRadius:4,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:12,fontSize:14,fontWeight:500,color:C.text,fontFamily:"inherit",boxShadow:C.shadow}}><GoogleIcon/> Sign in with Google</button>
-          <p style={{textAlign:"center",fontSize:11,color:C.amber,marginTop:12,fontFamily:"'DM Mono',monospace"}}>SETUP REQUIRED: Add your Google Client ID to index.html line 72</p>
         </div>}
         <div style={{marginTop:24,borderTop:`1px solid ${C.border}`,paddingTop:14,textAlign:"center"}}><p style={{fontSize:11,color:C.textMuted,lineHeight:1.7,fontFamily:"'DM Mono',monospace"}}>New users auto-assigned Sales Rep role.<br/>Contact Admin for role changes.</p></div>
       </div>
@@ -125,7 +124,7 @@ function LoginScreen({onSSOLogin,setToast}){
 
 // ══════════════════════════
 function App(){
-  const [user,setUser]=useState(null);
+  const [user,setUser]=useState(()=>{try{const s=localStorage.getItem("ig-session");return s?JSON.parse(s):null}catch{return null}});
   const [users,setUsers]=useState(()=>ld(SK.users,DEF_USERS));
   const [res,setRes]=useState(()=>ld(SK.resources,[]));
   const [logs,setLogs]=useState(()=>ld(SK.logs,[]));
@@ -149,8 +148,28 @@ function App(){
   const persist=(k,d,fn)=>{fn(d);sv(k,d)};
   const addLog=(a,d,cl,cu)=>{const e={id:gid(),user:cu?.email||"system",action:a,detail:d,timestamp:new Date().toISOString()};const u=[e,...cl].slice(0,500);setLogs(u);sv(SK.logs,u);return u};
 
-  const handleSSOLogin=(gu)=>{if(!gu.email.endsWith("@itgeeks.com")){setToast({message:"@itgeeks.com only",type:"error"});return}let eu=users.find(u=>u.email.toLowerCase()===gu.email.toLowerCase());if(eu){setUser(eu);addLog("SSO Login",`${eu.name} (${eu.role})`,logs,eu)}else{const nu={id:gid(),email:gu.email.toLowerCase(),name:gu.name||gu.email.split("@")[0],role:"Sales Rep",sso:true};persist(SK.users,[...users,nu],setUsers);setUser(nu);addLog("SSO Login (New)",`${nu.name}`,logs,nu);setToast({message:`Welcome ${nu.name}!`,type:"success"})}};
-  const handleLogout=()=>{addLog("Logout",user.name,logs,user);setUser(null);setTab("home")};
+  const handleSSOLogin=(gu)=>{
+    try{
+      if(!gu.email||!gu.email.endsWith("@itgeeks.com")){setToast({message:"Access restricted to @itgeeks.com",type:"error"});return}
+      const email=gu.email.toLowerCase();
+      let eu=users.find(u=>u.email.toLowerCase()===email);
+      if(eu){
+        setUser(eu);localStorage.setItem("ig-session",JSON.stringify(eu));
+        addLog("SSO Login",`${eu.name} (${eu.role})`,logs,eu);
+      }else{
+        const nu={id:gid(),email,name:gu.name||email.split("@")[0],role:"Sales Rep",sso:true};
+        const updated=[...users,nu];
+        setUsers(updated);sv(SK.users,updated);
+        setUser(nu);localStorage.setItem("ig-session",JSON.stringify(nu));
+        addLog("SSO Login (New)",nu.name,logs,nu);
+        setToast({message:`Welcome ${nu.name}!`,type:"success"});
+      }
+    }catch(err){
+      console.error("SSO Login error:",err);
+      setToast({message:"Login failed. Please try again.",type:"error"});
+    }
+  };
+  const handleLogout=()=>{addLog("Logout",user.name,logs,user);setUser(null);localStorage.removeItem("ig-session");setTab("home")};
 
   // Mac-style copy with animation
   const copyPwd=(r)=>{
@@ -158,9 +177,32 @@ function App(){
     setCopyAnimId(r.id);setTimeout(()=>setCopyAnimId(null),600);
     if(clipRef.current)clearInterval(clipRef.current);setClipCount(10);
     clipRef.current=setInterval(()=>{setClipCount(p=>{if(p<=1){clearInterval(clipRef.current);clipRef.current=null;try{navigator.clipboard.writeText("")}catch{}return 0}return p-1})},1000);
-    setToast({message:"Copied — auto-clears 10s",type:"success"});addLog("Copy Password",r.name,logs,user);
+    setToast({message:"Password copied",type:"success"});addLog("Copy Password",r.name,logs,user);
   };
-  const accessRes=(r)=>{if(r.type==="password")copyPwd(r);else{addLog(r.type==="link"?"Access Link":"Download",r.name,logs,user);if(r.type==="file"){const a=document.createElement("a");a.href=r.value;a.download=r.value.split("/").pop()||r.name;a.target="_blank";a.click()}else{window.open(r.value,"_blank")}}};
+  const accessRes=(r)=>{
+    if(r.type==="password"){copyPwd(r);return}
+    addLog(r.type==="link"?"Access Link":"Download",r.name,logs,user);
+    if(r.type==="file"){
+      // Try fetch+blob for real download, fallback to window.open
+      const fileName=r.name.replace(/[^a-zA-Z0-9._-]/g,"_")||"download";
+      fetch(r.value,{mode:"cors"}).then(resp=>{
+        if(!resp.ok)throw new Error("fetch failed");
+        return resp.blob();
+      }).then(blob=>{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");a.href=url;a.download=fileName;
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setToast({message:`Downloading ${r.name}`,type:"success"});
+      }).catch(()=>{
+        // Fallback: open in new tab if CORS blocks download
+        window.open(r.value,"_blank");
+        setToast({message:`Opened ${r.name} — save from browser`,type:"success"});
+      });
+    }else{
+      window.open(r.value,"_blank");
+    }
+  };
 
   const addResource=(d)=>{persist(SK.resources,[...res,{...d,id:gid(),addedBy:user.email,addedAt:new Date().toISOString()}],setRes);addLog("Add",d.name,logs,user);setShowAddRes(false);setToast({message:"Added",type:"success"})};
   const editResource=(d)=>{persist(SK.resources,res.map(r=>r.id===d.id?{...r,...d}:r),setRes);addLog("Edit",d.name,logs,user);setShowEditRes(null);setToast({message:"Updated",type:"success"})};
@@ -185,14 +227,12 @@ function App(){
   return <>
   <div style={{display:"flex",minHeight:"100vh",background:C.bg,color:C.text}}>
     <aside style={{width:78,background:C.sidebar,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",alignItems:"center",paddingTop:18,flexShrink:0}}>
-      <div style={{padding:"5px 12px",border:`1.5px solid ${C.border}`,borderRadius:20,marginBottom:24}}><span style={{fontFamily:"'Libre Baskerville',serif",fontSize:12,fontWeight:700}}>I.G</span></div>
+      <div style={{padding:"5px 12px",border:`1.5px solid ${C.border}`,borderRadius:20,marginBottom:24}}><span style={{fontFamily:"'Libre Baskerville',serif",fontSize:12,fontWeight:700}}>ITG</span></div>
       <nav style={{flex:1,display:"flex",flexDirection:"column",gap:2,width:"100%"}}>{nav.map(n=><div key={n.id} className="nv" onClick={()=>{setTab(n.id);if(n.id==="resources")setActiveCat(null)}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"9px 4px",cursor:"pointer",borderRadius:4,margin:"0 6px",color:tab===n.id?C.accentDark:C.textMuted,background:tab===n.id?C.accentLight:"transparent"}}><Ic d={n.i} size={18}/><span style={{fontSize:9,fontWeight:500,fontFamily:"'DM Mono',monospace",textTransform:"uppercase"}}>{n.l}</span></div>)}</nav>
       <div style={{paddingBottom:14}}><div className="nv" onClick={handleLogout} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"9px 4px",cursor:"pointer",borderRadius:4,margin:"0 6px",color:C.red}}><Ic d={ic.out} size={18}/><span style={{fontSize:9,fontFamily:"'DM Mono',monospace"}}>EXIT</span></div></div>
     </aside>
 
     <main style={{flex:1,overflow:"auto",padding:"20px 28px"}}>
-      {clipCount>0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 14px",marginBottom:14,background:C.amberBg,border:`1px solid ${C.amber}40`,borderRadius:4}}><span style={{fontSize:12,color:C.amber,fontWeight:500,fontFamily:"'DM Mono',monospace"}}>Clipboard auto-clears: {clipCount}s</span><button onClick={()=>{if(clipRef.current)clearInterval(clipRef.current);try{navigator.clipboard.writeText("")}catch{}setClipCount(0)}} style={{background:C.amber,color:"#fff",border:"none",borderRadius:2,padding:"3px 10px",fontSize:11,cursor:"pointer",fontFamily:"'DM Mono',monospace"}}>CLEAR</button></div>}
-
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
         <span className="stamp">Confidential</span>
         <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",background:C.surface,borderRadius:4,border:`1px solid ${C.borderLight}`}}>
@@ -210,7 +250,7 @@ function App(){
           {[{l:"Total",v:res.length,c:C.blue},{l:"Passwords",v:res.filter(r=>r.type==="password").length,c:C.red},{l:"Links",v:res.filter(r=>r.type==="link").length,c:C.green},{l:"Files",v:res.filter(r=>r.type==="file").length,c:C.amber}].map(s=><div key={s.l} className="card" style={{padding:"16px 18px"}}><div style={{fontSize:10,color:C.textMuted,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>{s.l}</div><div style={{fontSize:28,fontWeight:700,color:s.c,fontFamily:"'Libre Baskerville',serif"}}>{s.v}</div></div>)}
         </div>
         <div className="card" style={{padding:"16px 18px"}}><h3 style={{fontSize:13,fontFamily:"'DM Mono',monospace",textTransform:"uppercase",letterSpacing:".05em",margin:"0 0 12px"}}>Recent Files</h3>
-          {res.length===0?<p style={{color:C.textMuted,fontSize:13}}>No resources yet.</p>:res.slice(-5).reverse().map(r=><div key={r.id} className="rh" onClick={()=>accessRes(r)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 10px",borderRadius:4,cursor:"pointer",marginBottom:2}}><div style={{display:"flex",alignItems:"center",gap:10}}><TypeIcon type={r.type}/><div><div style={{fontSize:13,fontWeight:500}}>{r.name}</div><div style={{fontSize:11,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>{r.category}</div></div></div></div>)}
+          {res.length===0?<p style={{color:C.textMuted,fontSize:13,padding:"20px 0",textAlign:"center"}}>No resources available yet.{isAdmin?" Add resources from the Files section.":" Your Admin will add resources soon."}</p>:res.slice(-5).reverse().map(r=><div key={r.id} className="rh" onClick={()=>accessRes(r)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 10px",borderRadius:4,cursor:"pointer",marginBottom:2}}><div style={{display:"flex",alignItems:"center",gap:10}}><TypeIcon type={r.type}/><div><div style={{fontSize:13,fontWeight:500}}>{r.name}</div><div style={{fontSize:11,color:C.textMuted,fontFamily:"'DM Mono',monospace"}}>{r.category}</div></div></div></div>)}
         </div>
       </div>}
 
